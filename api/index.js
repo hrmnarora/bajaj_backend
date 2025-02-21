@@ -1,20 +1,22 @@
 const express = require("express");
 const cors = require("cors");
-
 const app = express();
-app.use(express.json());
-app.use(cors({ origin: "*" })); // Allow all origins
+const serverless = require("serverless-http"); // Required for Vercel
 
-// GET Request (Check if API is working)
-app.get("/api/bfhl", (req, res) => {
+app.use(express.json());
+app.use(cors());
+
+// 🔹 GET Endpoint → Returns operation code
+app.get("/bfhl", (req, res) => {
   res.status(200).json({ operation_code: 1 });
 });
 
-// POST Request (Process Input)
-app.post("/api/bfhl", (req, res) => {
+// 🔹 POST Endpoint → Processes input and categorizes data
+app.post("/bfhl", (req, res) => {
   try {
     const { data } = req.body;
-    
+
+    // Validation
     if (!data || !Array.isArray(data)) {
       return res.status(400).json({ is_success: false, message: "Invalid input. 'data' must be an array." });
     }
@@ -23,7 +25,8 @@ app.post("/api/bfhl", (req, res) => {
     const alphabets = [];
     let highest_alphabet = "";
 
-    data.forEach(item => {
+    // Process data
+    data.forEach((item) => {
       if (!isNaN(item)) {
         numbers.push(item);
       } else if (typeof item === "string" && item.length === 1) {
@@ -36,6 +39,7 @@ app.post("/api/bfhl", (req, res) => {
       }
     });
 
+    // Response JSON
     res.json({
       is_success: true,
       user_id: "Harman_Arora_29012004",
@@ -43,13 +47,12 @@ app.post("/api/bfhl", (req, res) => {
       roll_number: "2236792",
       numbers,
       alphabets,
-      highest_alphabet: highest_alphabet ? [highest_alphabet] : []
+      highest_alphabet: highest_alphabet ? [highest_alphabet] : [],
     });
-
   } catch (error) {
     res.status(500).json({ is_success: false, message: "Internal Server Error" });
   }
 });
 
-// Export for Vercel Serverless
-module.exports = app;
+// Export the handler for Vercel
+module.exports = serverless(app);
